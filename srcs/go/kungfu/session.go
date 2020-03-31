@@ -262,14 +262,26 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 	isDebug := false
 	if sess.rank == 0 && isDebug {
 		log.Debugf("info here")
-		log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
-		// log.Debugf(fmt.Sprintf("ok :", ok))
-		// log.Debugf(fmt.Sprintf("delay : ", delay))
+		log.Debugf(fmt.Sprintln("sess.iteration :", sess.iterationIdx))
 	}
 
 	for _, g := range graphs {
 		// reduce graph
 		if g.IsSelfLoop(sess.rank) {
+
+			// log reduce graph
+			f := "worker-log-" + strconv.Itoa(sess.rank)
+			file, err := os.OpenFile(f, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+
+			t0 := time.Now().UnixNano() / 1000000
+			data := fmt.Sprintln(len(effectiveData()))
+			eventBegin := "Reduce op begin with data = " + data + " bytes"
+			utils.WriteToFile(file, eventBegin, t0)
+
 			prevs := g.Prevs(sess.rank)
 			if err := par(prevs, recvOnto); err != nil {
 				return err
@@ -278,11 +290,6 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 			if sess.delayOn && isAllReduce {
 				delay, ok := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
 				if sess.rank == delay.NodeID && ok {
-					// log.Debugf("delaying worker for this iteration --------------------")
-					// log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
-					// log.Debugf(fmt.Sprintf("iteration from config :", delay.IterationID))
-					// log.Debugf(fmt.Sprintf("worker :", (delay.NodeID)))
-					// log.Debugf(fmt.Sprintf("delay time :", delay.TimeDelay))
 					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
 				}
 			}
@@ -290,8 +297,26 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 				return err
 			}
 
+			t1 := time.Now().UnixNano() / 1000000
+			eventEnd := "Reduce op end"
+			utils.WriteToFile(file, eventEnd, t1)
+
 			// broadcast graph
 		} else {
+
+			// log bcast graph
+			f := "worker-log-" + strconv.Itoa(sess.rank)
+			file, err := os.OpenFile(f, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+
+			t0 := time.Now().UnixNano() / 1000000
+			data := fmt.Sprintln(len(effectiveData()))
+			eventBegin := "Broadcast op begin with data = " + data + " bytes"
+			utils.WriteToFile(file, eventBegin, t0)
+
 			prevs := g.Prevs(sess.rank)
 			if len(prevs) > 1 {
 				log.Errorf("more than once recvInto detected at node %d", sess.rank)
@@ -304,6 +329,12 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 			if err := par(g.Nexts(sess.rank), sendInto); err != nil {
 				return err
 			}
+
+			t1 := time.Now().UnixNano() / 1000000
+
+			eventEnd := "Broadcast op end"
+			utils.WriteToFile(file, eventEnd, t1)
+
 		}
 	}
 	return nil

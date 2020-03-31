@@ -22,7 +22,7 @@ args = parser.parse_args()
 
 DATASET_SIZE = 300
 TRAIN_VAL_SPLIT = 0.8
-NUM_EPOCHS = 15
+NUM_EPOCHS = 5
 BATCH_SIZE = 8
 # adjust number of steps based on number of workers
 NUM_STEPS = (DATASET_SIZE // BATCH_SIZE) // current_cluster_size()
