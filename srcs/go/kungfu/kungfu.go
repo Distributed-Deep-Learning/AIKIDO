@@ -56,7 +56,10 @@ func NewFromConfig(config *plan.Config) (*Kungfu, error) {
 	router := rch.NewRouter(config.Self)
 	server := rch.NewServer(router)
 	// initialize config at the beginning of a new session
-	delayConfig := parseDelayConfigFile()
+	var delayConfig map[int]Delay
+	if config.DelayOn {
+		delayConfig = parseDelayConfigFile()
+	}
 
 	return &Kungfu{
 		parent:           config.Parent,
@@ -280,9 +283,9 @@ func (kf *Kungfu) ReshapeStrategy(reshapeOn int) (bool, error) {
 	// log.Debugf(fmt.Sprintln("reshapeOn is ", reshapeOn))
 
 	var newStrategy []strategy
-	if reshapeOn == 0 {
+	if reshapeOn == 0 && !kf.DelayOn {
 		newStrategy = kf.CurrentSession().strategies
-		kf.nextStrategy()
+		// kf.nextStrategy()
 	} else {
 		newStrategy = kf.nextStrategy()
 	}

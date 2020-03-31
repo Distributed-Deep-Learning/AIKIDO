@@ -133,7 +133,7 @@ if __name__ == "__main__":
 
 
                 # reshape strategy before apply_gradients (and therefore AllReduce is called in KungFu)
-                keep = reshape_strategy()
+                keep = reshape_strategy(0)
                 if not keep:
                     print("RESHAPE STRATEGY DIDN'T WORK!!!!!!!!!!!!!!")
 

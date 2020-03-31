@@ -3,6 +3,8 @@ package kungfu
 import (
 	"errors"
 	"fmt"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -256,14 +258,13 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 
 	// delay the appropriate worker by delay.TimeDelay ms
 	// TODO: parse Delay from file and update it every iteration here
-	delay, ok := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
 
 	isDebug := false
 	if sess.rank == 0 && isDebug {
 		log.Debugf("info here")
 		log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
-		log.Debugf(fmt.Sprintf("ok :", ok))
-		log.Debugf(fmt.Sprintf("delay : ", delay))
+		// log.Debugf(fmt.Sprintf("ok :", ok))
+		// log.Debugf(fmt.Sprintf("delay : ", delay))
 	}
 
 	for _, g := range graphs {
@@ -275,6 +276,7 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 			}
 			// add delay here right before the sess.rank sends its reduced data to next nodes
 			if sess.delayOn && isAllReduce {
+				delay, ok := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
 				if sess.rank == delay.NodeID && ok {
 					// log.Debugf("delaying worker for this iteration --------------------")
 					// log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
@@ -320,12 +322,19 @@ func ceilDiv(a, b int) int {
 }
 
 func (sess *session) runStrategies(w Workspace, p partitionFunc, strategies []strategy, isAllReduce bool) error {
-	// f := "worker-log-" + strconv.Itoa(sess.rank)
-	// if isAllReduce {
-	// 	t0 := time.Now().UnixNano() / 1000000
-	// 	eventBegin := "AllReduce begin"
-	// 	utils.WriteToFile(f, eventBegin, t0)
-	// }
+	f := "worker-log-" + strconv.Itoa(sess.rank)
+
+	file, err := os.OpenFile(f, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if isAllReduce {
+		t0 := time.Now().UnixNano() / 1000000
+		eventBegin := "AllReduce begin"
+		utils.WriteToFile(file, eventBegin, t0)
+	}
 
 	k := ceilDiv(w.RecvBuf.Count*w.RecvBuf.Type.Size(), chunkSize)
 	errs := make([]error, k)
@@ -339,12 +348,12 @@ func (sess *session) runStrategies(w Workspace, p partitionFunc, strategies []st
 	}
 	wg.Wait()
 
-	// if isAllReduce {
-	// 	t1 := time.Now().UnixNano() / 1000000
-	// 	eventEnd := "AllReduce end"
-	// 	utils.WriteToFile(f, eventEnd, t1)
+	if isAllReduce {
+		t1 := time.Now().UnixNano() / 1000000
+		eventEnd := "AllReduce end"
+		utils.WriteToFile(file, eventEnd, t1)
 
-	// }
+	}
 	return mergeErrors(errs, "runStrategies")
 
 }
