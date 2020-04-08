@@ -141,8 +141,8 @@ if __name__ == "__main__":
                 probs, loss_value = training_step(
                     mnist_model, opt, images, labels, batch == 0)
 
-                print('training step %d, took %s' %
-                      (step, show_duration(time.time() - t0)))
+                # print('training step %d, took %s' %
+                #       (step, show_duration(time.time() - t0)))
                 step += 1
                 # print(f"batch number here is {batch}")
                 # update training metric

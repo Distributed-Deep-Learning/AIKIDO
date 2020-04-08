@@ -278,9 +278,9 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 			defer file.Close()
 
 			t0 := time.Now().UnixNano() / 1000000
-			data := fmt.Sprintln(len(effectiveData()))
-			eventBegin := "Reduce op begin with data = " + data + " bytes"
-			utils.WriteToFile(file, eventBegin, t0)
+			dataChunk := w.Name
+			eventBegin := "Reduce Op | BEGIN"
+			utils.WriteToFile(file, eventBegin, dataChunk, t0)
 
 			prevs := g.Prevs(sess.rank)
 			if err := par(prevs, recvOnto); err != nil {
@@ -298,8 +298,8 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 			}
 
 			t1 := time.Now().UnixNano() / 1000000
-			eventEnd := "Reduce op end"
-			utils.WriteToFile(file, eventEnd, t1)
+			eventEnd := "Reduce Op | END"
+			utils.WriteToFile(file, eventEnd, dataChunk, t1)
 
 			// broadcast graph
 		} else {
@@ -313,9 +313,9 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 			defer file.Close()
 
 			t0 := time.Now().UnixNano() / 1000000
-			data := fmt.Sprintln(len(effectiveData()))
-			eventBegin := "Broadcast op begin with data = " + data + " bytes"
-			utils.WriteToFile(file, eventBegin, t0)
+			dataChunk := w.Name
+			eventBegin := "Broadcast Op | BEGIN"
+			utils.WriteToFile(file, eventBegin, dataChunk, t0)
 
 			prevs := g.Prevs(sess.rank)
 			if len(prevs) > 1 {
@@ -331,9 +331,8 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 			}
 
 			t1 := time.Now().UnixNano() / 1000000
-
-			eventEnd := "Broadcast op end"
-			utils.WriteToFile(file, eventEnd, t1)
+			eventEnd := "Broadcast Op | END"
+			utils.WriteToFile(file, eventEnd, dataChunk, t1)
 
 		}
 	}
@@ -360,11 +359,13 @@ func (sess *session) runStrategies(w Workspace, p partitionFunc, strategies []st
 		return err
 	}
 	defer file.Close()
+	dataChunk := w.Name
 
 	if isAllReduce {
 		t0 := time.Now().UnixNano() / 1000000
-		eventBegin := "AllReduce begin"
-		utils.WriteToFile(file, eventBegin, t0)
+		eventType := "AllReduce Cycle | BEGIN"
+
+		utils.WriteToFile(file, eventType, dataChunk, t0)
 	}
 
 	k := ceilDiv(w.RecvBuf.Count*w.RecvBuf.Type.Size(), chunkSize)
@@ -381,8 +382,8 @@ func (sess *session) runStrategies(w Workspace, p partitionFunc, strategies []st
 
 	if isAllReduce {
 		t1 := time.Now().UnixNano() / 1000000
-		eventEnd := "AllReduce end"
-		utils.WriteToFile(file, eventEnd, t1)
+		eventType := "AllReduce Cycle | END"
+		utils.WriteToFile(file, eventType, dataChunk, t1)
 
 	}
 	return mergeErrors(errs, "runStrategies")

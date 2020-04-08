@@ -1,0 +1,89 @@
+{
+"traceEvents": [
+
+        {
+            "pid": 1,
+            "tid": 4,
+            "ts": "1586107060863",
+            "ph": "B",
+            "name": "AllReduceCycle: KungfuAllReduce_4",
+            "cat": "AllReduceCycle"
+        }, 
+        {
+            "pid": 1,
+            "tid": 4,
+            "ts": "1586107060954",
+            "ph": "B",
+            "name": "ReduceOp: part::KungfuAllReduce_4[0:235930]",
+            "cat": "ReduceOp"
+        },
+        {
+            "pid": 1,
+            "tid": 4,
+            "ts": "1586107060954",
+            "ph": "B",
+            "name": "ReduceOp: part::KungfuAllReduce_4[471860:707790]",
+            "cat": "ReduceOp"
+        },
+        {
+            "pid": 1,
+            "tid": 4,
+            "ts": "1586107061134",
+            "ph": "E",
+            "name": "ReduceOp: part::KungfuAllReduce_4[471860:707790]",
+            "cat": "ReduceOp"
+        },
+        {
+            "pid": 1,
+            "tid": 4,
+            "ts": "1586107061136",
+            "ph": "E",
+            "name": "ReduceOp: part::KungfuAllReduce_4[0:235930]",
+            "cat": "ReduceOp"
+        },
+        {
+            "pid": 1,
+            "tid": 4,
+            "ts": "1586107061228",
+            "ph": "B",
+            "name": "BroadcastOp: part::KungfuAllReduce_4[471860:707790]",
+            "cat": "BroadcastOp"
+        },
+        {
+            "pid": 1,
+            "tid": 4,
+            "ts": "1586107061228",
+            "ph": "B",
+            "name": "BroadcastOp: part::KungfuAllReduce_4[0:235930]",
+            "cat": "BroadcastOp"
+        },
+        {
+            "pid": 1,
+            "tid": 4,
+            "ts": "1586107061336",
+            "ph": "E",
+            "name": "BroadcastOp: part::KungfuAllReduce_4[0:235930]",
+            "cat": "BroadcastOp"
+        },
+        {
+            "pid": 1,
+            "tid": 4,
+            "ts": "1586107061349",
+            "ph": "E",
+            "name": "BroadcastOp: part::KungfuAllReduce_4[471860:707790]",
+            "cat": "BroadcastOp"
+        },
+        {
+            "pid": 1,
+            "tid": 4,
+            "ts": "1586107061417",
+            "ph": "E",
+            "name": "AllReduceCycle: KungfuAllReduce_4",
+            "cat": "AllReduceCycle"
+        }
+
+],
+"displayTimeUnit": "ns",
+"meta_user": "ayushs",
+"meta_cpu_count": "2"
+}

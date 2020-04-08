@@ -134,9 +134,9 @@ func ProgName() string {
 	return ""
 }
 
-func WriteToFile(file *os.File, eventType string, time int64) error {
+func WriteToFile(file *os.File, eventType, eventID string, time int64) error {
 
-	data := eventType + " | " + fmt.Sprintf("%d\n", time)
+	data := eventType + " | " + eventID + " | " + fmt.Sprintf("%d\n", time)
 	_, err := io.WriteString(file, data)
 	if err != nil {
 		return err
