@@ -23,13 +23,13 @@ args = parser.parse_args()
 
 def parse_tid(name):
     # parse the tid from name. Example - KungfuAllReduce_7 -> 7, KungfuAllReduce -> 0
-    split = name.split("_")
-    if len(split) == 1: 
+    split_string = name.split("_")
+    if len(split_string) == 1:
         return 0
-    return int(split[1][0])
-
-
-
+    if "[" in name:
+        split_string = split_string[1].split("[")
+        return split_string[0]
+    return int(split_string[1])
 
 
 def main():
@@ -95,8 +95,14 @@ def main():
         json.dump(data, outfile, indent=4)
 
 
+def test_parse_tid():
+    print(parse_tid("part::KungfuAllReduce_6[0:1280]"))
+    print(parse_tid("part::KungfuAllReduce[0:288]"))
+    print(parse_tid("part::KungfuAllReduce_4[471860:707790]"))
+    print(parse_tid("KungfuAllReduce_212"))
+    print(parse_tid("part::KungfuAllReduce_147[0:1024]"))
+
+
 if __name__ == "__main__":
     main()
-    # print(parse_tid("part::KungfuAllReduce_6[0:1280]"))
-    # print(parse_tid("part::KungfuAllReduce[0:288]"))
-    # print(parse_tid("part::KungfuAllReduce_4[471860:707790]"))
+    # test_parse_tid()
