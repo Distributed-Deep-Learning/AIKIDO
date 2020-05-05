@@ -35,7 +35,7 @@ parser.add_argument(
     help='number of warm-up batches that don\'t count towards benchmark')
 parser.add_argument('--num-batches-per-iter',
                     type=int,
-                    default=10,
+                    default=1,
                     help='number of batches per benchmark iteration')
 parser.add_argument('--num-iters',
                     type=int,
@@ -61,9 +61,15 @@ parser.add_argument('--fuse',
                     action='store_true',
                     default=False,
                     help='Fuse KungFu operations')
+parser.add_argument('--reshape-on', 
+                    action='store_true',
+                    default=False,
+                    help='turn on reshape strategy method')
+
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda
+reshape = 1 if args.reshape_on else 0
 
 config = tf.ConfigProto()
 if args.cuda:
@@ -169,7 +175,12 @@ else:
         if args.kf_optimizer:
             from kungfu.tensorflow.initializer import BroadcastGlobalVariablesOp
             session.run(BroadcastGlobalVariablesOp())
+        
+        #reshape_strategy op
+        session.run(reshape_strategy(reshape))
+        #train op
         run(lambda: session.run(train_opt))
-        session.run(reshape_strategy(0))
+
+        
         if barrier_op is not None:
             session.run(barrier_op)

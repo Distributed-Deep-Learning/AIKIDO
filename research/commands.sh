@@ -175,11 +175,11 @@ git pull
 kungfu-run -np 16 \
 -H 10.128.0.6:4,10.128.0.7:4,10.128.0.8:4,10.128.0.9:4 \
 -nic eth0 \
--logdir logs/debug/ \
+-logdir logs/debug/testing \
 -strategy RING \
 -delay=false \
 -activeBackup=false \
-python3 benchmarks/system/benchmark_kungfu.py --batch-size=128 --num-warmup-batches=50
+python3 benchmarks/system/benchmark_kungfu.py --num-batches-per-iter=1 --batch-size=128 --num-warmup-batches=50 --num-iters=100
 
 
 kungfu-run -np 16 \
