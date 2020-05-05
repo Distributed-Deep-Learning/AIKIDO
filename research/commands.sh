@@ -179,7 +179,19 @@ kungfu-run -np 16 \
 -strategy RING \
 -delay=false \
 -activeBackup=false \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=50
+python3 benchmarks/system/benchmark_kungfu.py --batch-size=128 --num-warmup-batches=50
+
+
+kungfu-run -np 16 \
+-H 10.128.0.6:4,10.128.0.7:4,10.128.0.8:4,10.128.0.9:4 \
+-nic eth0 \
+-logdir logs/debug/ \
+-strategy RING \
+-delay=false \
+-activeBackup=false \
+python3 official/resnet/imagenet_main.py -dd=../imagenet/data/ -bs=256 -ng=4 --hooks=LoggingTensorHook,ExamplesPerSecondHook
+
+
 
 
 kungfu-run -np 4 \

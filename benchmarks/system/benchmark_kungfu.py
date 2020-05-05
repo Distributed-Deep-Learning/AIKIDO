@@ -13,6 +13,7 @@ import timeit
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import applications
+from kungfu.tensorflow.ops import reshape_strategy
 
 # Benchmark settings
 parser = argparse.ArgumentParser(
@@ -138,13 +139,17 @@ def run(benchmark_step):
     # Benchmark
     log('Running benchmark...')
     img_secs = []
+    iteration_time = []
     for x in range(args.num_iters):
         time = timeit.timeit(benchmark_step, number=args.num_batches_per_iter)
         img_sec = args.batch_size * args.num_batches_per_iter / time
         log('Iter #%d: %.1f img/sec per %s' % (x, img_sec, device))
+        log('iteration time : %.3f' % time)
         img_secs.append(img_sec)
+        iteration_time.append(time)
 
     # Results
+    log('mean iteration time: %.3f' % np.mean(iteration_time)) 
     img_sec_mean = np.mean(img_secs)
     img_sec_conf = 1.96 * np.std(img_secs)
     log('Img/sec per %s: %.1f +-%.1f' % (device, img_sec_mean, img_sec_conf))
@@ -165,5 +170,6 @@ else:
             from kungfu.tensorflow.initializer import BroadcastGlobalVariablesOp
             session.run(BroadcastGlobalVariablesOp())
         run(lambda: session.run(train_opt))
+        session.run(reshape_strategy(0))
         if barrier_op is not None:
             session.run(barrier_op)
