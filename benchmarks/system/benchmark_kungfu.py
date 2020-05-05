@@ -29,10 +29,10 @@ parser.add_argument('--batch-size',
                     default=32,
                     help='input batch size')
 parser.add_argument(
-    '--num-warmup-batches',
-    type=int,
-    default=10,
-    help='number of warm-up batches that don\'t count towards benchmark')
+                    '--num-warmup-batches',
+                    type=int,
+                    default=10,
+                    help='number of warm-up batches that don\'t count towards benchmark')
 parser.add_argument('--num-batches-per-iter',
                     type=int,
                     default=1,
@@ -147,6 +147,9 @@ def run(benchmark_step):
     img_secs = []
     iteration_time = []
     for x in range(args.num_iters):
+        #reshape_strategy op
+        session.run(reshape_strategy(reshape))
+        
         time = timeit.timeit(benchmark_step, number=args.num_batches_per_iter)
         img_sec = args.batch_size * args.num_batches_per_iter / time
         log('Iter #%d: %.1f img/sec per %s' % (x, img_sec, device))
@@ -176,8 +179,7 @@ else:
             from kungfu.tensorflow.initializer import BroadcastGlobalVariablesOp
             session.run(BroadcastGlobalVariablesOp())
         
-        #reshape_strategy op
-        session.run(reshape_strategy(reshape))
+        
         #train op
         run(lambda: session.run(train_opt))
 
