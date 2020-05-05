@@ -173,23 +173,30 @@ git pull
 
 
 kungfu-run -np 16 \
--H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4 \
+-H 10.128.0.6:4,10.128.0.7:4,10.128.0.8:4,10.128.0.9:4 \
 -nic eth0 \
 -logdir logs/debug/ \
 -strategy RING \
--delay=true \
+-delay=false \
 -activeBackup=false \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=50 --reshape-on
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=50
 
 
-kungfu-run -np 8 \
--H 10.128.0.14:4,10.128.0.15:4 \
--nic eth0 \
--logdir logs/debug/baseline \
+kungfu-run -np 4 \
+-logdir logs/debug/baseline-deubg-test \
 -strategy RING \
 -delay=false \
 -activeBackup=false \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10
+python3 benchmarks/system/benchmark_kungfu.py --batch-size=128 --num-warmup-batches=10
+
+
+kungfu-run -np 4 \
+-logdir logs/debug/ayushs-baseline-debug-test-run-ssd-2 \
+-strategy AUTO \
+-delay=true \
+-activeBackup=false \
+python3 official/resnet/imagenet_main.py -dd=../imagenet/data/ -bs=256 -ng=4 --hooks=LoggingTensorHook,ExamplesPerSecondHook
+
 
 
 
@@ -198,14 +205,14 @@ kungfu-run -np 8 \
 -strategy RING \
 -delay=true \
 -activeBackup=false \
-python examples/tf2_mnist_gradient_tape.py --name timeline-test
+python3 examples/tf2_mnist_gradient_tape.py --name timeline-test
 
 
 cd src/KungFu
 git pull 
-yes | pip uninstall KungFu
-pip wheel -vvv --no-index ./
-pip install --no-index ./
+yes | pip3 uninstall KungFu
+pip3 wheel -vvv --no-index ./
+pip3 install --no-index ./
 GOBIN=$(pwd)/bin go install -v ./srcs/go/cmd/kungfu-run
 export PATH=$PATH:$(pwd)/bin
 

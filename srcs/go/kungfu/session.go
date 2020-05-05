@@ -272,6 +272,7 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 				delay, iterStraggler := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
 				_, nodeStraggler := delay.NodeID[sess.rank]
 				if nodeStraggler && iterStraggler {
+					log.Debugf(fmt.Sprintln(delay.TimeDelay))
 					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
 				}
 			}
