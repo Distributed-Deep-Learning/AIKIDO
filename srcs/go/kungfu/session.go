@@ -270,9 +270,8 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 			// add delay here right before the sess.rank sends its reduced data to next nodes
 			if sess.delayOn && isAllReduce {
 				delay, iterStraggler := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
-				_, nodeStraggler := delay.NodeID[sess.rank]
-				if nodeStraggler && iterStraggler {
-					log.Debugf(fmt.Sprintln(delay.TimeDelay))
+				if sess.rank == delay.NodeID && iterStraggler {
+					// log.Debugf(fmt.Sprintln(delay.TimeDelay))
 					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
 				}
 			}

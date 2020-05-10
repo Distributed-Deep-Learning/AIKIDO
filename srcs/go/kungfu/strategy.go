@@ -155,17 +155,15 @@ func autoSelect(peers plan.PeerList) kb.Strategy {
 
 type Delay struct {
 	IterationID int
-	// NodeID is a map[NodeID][IterationID]
-	NodeID    map[int]int
-	TimeDelay int
+	NodeID      int
+	TimeDelay   int
 }
 
 func GenerateConfigFromDelay(k int, delay Delay, isStraggling, enableActiveBackup bool) map[int]int {
 	config := make(map[int]int)
 	for i := 0; i < k; i++ {
 		// backup/straggler node
-		_, ok := delay.NodeID[i]
-		if ok && isStraggling {
+		if delay.NodeID == i && isStraggling {
 			config[i] = 2
 
 		} else {

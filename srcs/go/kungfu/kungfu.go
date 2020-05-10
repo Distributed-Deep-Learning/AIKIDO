@@ -42,7 +42,6 @@ type Kungfu struct {
 	delayConfig      map[int]Delay
 	DelayOn          bool
 	ActiveBackup     bool
-	numBackups       int
 }
 
 func New() (*Kungfu, error) {
@@ -308,12 +307,10 @@ func parseDelayConfigFile() map[int]Delay {
 	// convert byte array to []Delay
 	// var delayArr []Delay
 	delayMap := make(map[int]Delay)
-	// change this manually now between experiments if you change number of stragglers
-	numBackups := 1
 
 	for _, row := range configNewLineSeparated {
 		args := strings.Split(row, ",")
-		delay := parseDelayFromRow(args, numBackups)
+		delay := parseDelayFromRow(args)
 		delayMap[delay.IterationID] = delay
 		// delayArr = append(delayArr, delay)
 
@@ -322,23 +319,17 @@ func parseDelayConfigFile() map[int]Delay {
 	return delayMap
 }
 
-func parseDelayFromRow(args []string, numBackups int) Delay {
+func parseDelayFromRow(args []string) Delay {
 	var delayArgs []int
 	for _, i := range args {
 		j, err := strconv.Atoi(i)
 		if err != nil {
 			log.Errorf("Line in config file could not be parsed")
-			return Delay{1, map[int]int{0: 0}, 0}
+			return Delay{1, 0, 0}
 		}
 		delayArgs = append(delayArgs, j)
 	}
 
-	NodeIDMap := make(map[int]int)
-
-	for i := 1; i < numBackups+1; i++ {
-		NodeIDMap[delayArgs[i]] = delayArgs[2]
-
-	}
-	delay := Delay{delayArgs[0], NodeIDMap, delayArgs[2]}
+	delay := Delay{delayArgs[0], delayArgs[1], delayArgs[2]}
 	return delay
 }
