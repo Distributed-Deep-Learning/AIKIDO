@@ -171,10 +171,17 @@ git pull
 # -strategy RING \
 # python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=102 --num-warmup-batches=100
 
-
+####
+cd ../src/KungFu
 kungfu-run -np 16 \
 -H 10.128.0.6:4,10.128.0.7:4,10.128.0.8:4,10.128.0.9:4 \
 -nic eth0 \
+-logdir logs/debug/testing \
+-strategy RING \
+python3 benchmarks/system/benchmark_kungfu.py --num-batches-per-iter=1 --batch-size=64 --num-warmup-batches=10 --num-iters=100
+
+
+kungfu-run -np 4 \
 -logdir logs/debug/testing \
 -strategy RING \
 -delay=false \
@@ -182,59 +189,57 @@ kungfu-run -np 16 \
 python3 benchmarks/system/benchmark_kungfu.py --num-batches-per-iter=1 --batch-size=128 --num-warmup-batches=50 --num-iters=100
 
 
-kungfu-run -np 4 \
--logdir logs/debug/testing \
--strategy RING \
--delay=false \
--activeBackup=false \
-python3 benchmarks/system/benchmark_kungfu.py --num-batches-per-iter=1 --batch-size=128 --num-warmup-batches=50 --num-iters=100
-
-
+####
 kungfu-run -np 16 \
 -H 10.128.0.6:4,10.128.0.7:4,10.128.0.8:4,10.128.0.9:4 \
 -nic eth0 \
--logdir logs/debug/ \
+-logdir logs/debug/ayushs-testing \
 -strategy RING \
--delay=false \
--activeBackup=false \
-python3 official/resnet/imagenet_main.py -dd=../imagenet/data/ -bs=256 -ng=4 --hooks=LoggingTensorHook,ExamplesPerSecondHook
+python3 official/resnet/imagenet_main.py -dd=../imagenet/data/ -bs=1024 -ng=16 --hooks=ExamplesPerSecondHook -ebe=10 -te=5
 
+
+kungfu-run -np 4 \
+-H 10.128.0.6:4 \
+-nic eth0 \
+-logdir logs/debug/ayushs-testing \
+-strategy RING \
+python3 official/resnet/imagenet_main.py -dd=../imagenet/data/ -bs=256 -ng=4 --hooks=ExamplesPerSecondHook
 
 
 
 kungfu-run -np 4 \
--logdir logs/debug/baseline-deubg-test \
--strategy RING \
--delay=false \
--activeBackup=false \
-python3 benchmarks/system/benchmark_kungfu.py --batch-size=128 --num-warmup-batches=10
-
-
-kungfu-run -np 4 \
--logdir logs/debug/ayushs-baseline-debug-test-run-ssd-2 \
+-logdir logs/debug/ayushs-testing-debug \
 -strategy AUTO \
--delay=true \
--activeBackup=false \
 python3 official/resnet/imagenet_main.py -dd=../imagenet/data/ -bs=256 -ng=4 --hooks=LoggingTensorHook,ExamplesPerSecondHook
 
 
 
-
-kungfu-run -np 8 \
--logdir logs/debug/timeline \
--strategy RING \
--delay=true \
--activeBackup=false \
-python3 examples/tf2_mnist_gradient_tape.py --name timeline-test
-
-
-cd src/KungFu
+#####
+cd ../src/KungFu
 git pull 
 yes | pip3 uninstall KungFu
 pip3 wheel -vvv --no-index ./
 pip3 install --no-index ./
 GOBIN=$(pwd)/bin go install -v ./srcs/go/cmd/kungfu-run
 export PATH=$PATH:$(pwd)/bin
+
+
+cd ./src/KungFu
+GOBIN=$(pwd)/bin go install -v ./srcs/go/cmd/kungfu-run
+export PATH=$PATH:$(pwd)/bin
+cd ../..
+export PYTHONPATH=$PYTHONPATH:/home/gcp_ghobadi_google_mit_edu/models
+cd models/
+
+
+cd ../src/
+rm -rf KungFu
+git clone https://github.com/lsds/KungFu.git
+cd KungFu
+yes | pip3 uninstall KungFu
+KUNGFU_BUILD_TOOLS=OFF pip3 install --no-index -U --user .
+GOBIN=$(pwd)/bin go install -v ./srcs/go/cmd/kungfu-run
+# export PATH=$PATH:$(pwd)/bin
 
 
 #iperf testing kungfu-run 
@@ -252,7 +257,7 @@ iperf -s
 
 #client side 9
 # iperf -c <IP> -u -b 
-# iperf -c 10.128.0.14 -t 90 & 
+iperf -c 10.128.0.6 -t 90
 # wait
 
 # imagenet learning rate fix (test)
