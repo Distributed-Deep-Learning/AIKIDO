@@ -1,4 +1,5 @@
 import tensorflow as tf
+from tensorflow.compat.v1 import logging
 from kungfu._utils import map_maybe
 from kungfu.tensorflow.ops import (current_cluster_size, defuse, fuse,
                                    group_all_reduce, group_nccl_all_reduce, reshape_strategy)
@@ -55,9 +56,13 @@ class _SynchronousSGD(_KungFuAlgorithm):
 
     def apply_gradients(self, apply_grads_func, grads_and_vars, **kwargs):
         gradients, variables = list(zip(*grads_and_vars))
-
+        logging.info("apply gradients is called here------------")
         if self._reshape_strategy:
-            reshape_strategy(debug=False)
+            logging.info("reshape on")
+            reshape_strategy(1)
+        else: 
+            logging.info("reshape called with int 0")
+            reshape_strategy(0)
             
 
         if self._nccl:
