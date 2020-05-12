@@ -56,12 +56,12 @@ class _SynchronousSGD(_KungFuAlgorithm):
 
     def apply_gradients(self, apply_grads_func, grads_and_vars, **kwargs):
         gradients, variables = list(zip(*grads_and_vars))
-        logging.info("apply gradients is called here------------")
+        # logging.info("apply gradients is called here------------")
         if self._reshape_strategy:
-            logging.info("reshape on")
+            # logging.info("reshape on")
             reshape_strategy(1)
         else: 
-            logging.info("reshape called with int 0")
+            # logging.info("reshape called with int 0")
             reshape_strategy(0)
             
 

@@ -184,7 +184,7 @@ python3 benchmarks/system/benchmark_kungfu.py --num-batches-per-iter=1 --batch-s
 kungfu-run -np 4 \
 -logdir logs/debug/testing \
 -strategy RING \
--delay=false \
+-delay=true \
 -activeBackup=false \
 python3 benchmarks/system/benchmark_kungfu.py --num-batches-per-iter=1 --batch-size=128 --num-warmup-batches=50 --num-iters=100
 
@@ -215,7 +215,12 @@ python3 official/resnet/imagenet_main.py -dd=../imagenet/data/ -bs=256 -ng=4 --h
 
 
 #####
-cd ../src/KungFu
+# cd ..
+cd src
+git clone https://github.com/ayushs7752/KungFu.git
+cd KungFu
+
+cd ../../src/KungFu
 git pull 
 yes | pip3 uninstall KungFu
 pip3 wheel -vvv --no-index ./
@@ -224,22 +229,21 @@ GOBIN=$(pwd)/bin go install -v ./srcs/go/cmd/kungfu-run
 export PATH=$PATH:$(pwd)/bin
 
 
+yes | sudo apt-get install python3-venv
+python3 -m venv tf2-venv
+source tf2-venv/bin/activate
+pip install --upgrade pip
+pip3 install tensorflow-gpu==2.0.0
+
+
+export PATH=$PATH:/usr/local/go/bin
+source tf2-venv/bin/activate
 cd ./src/KungFu
 GOBIN=$(pwd)/bin go install -v ./srcs/go/cmd/kungfu-run
 export PATH=$PATH:$(pwd)/bin
 cd ../..
-export PYTHONPATH=$PYTHONPATH:/home/gcp_ghobadi_google_mit_edu/models
-cd models/
-
-
-cd ../src/
-rm -rf KungFu
-git clone https://github.com/lsds/KungFu.git
-cd KungFu
-yes | pip3 uninstall KungFu
-KUNGFU_BUILD_TOOLS=OFF pip3 install --no-index -U --user .
-GOBIN=$(pwd)/bin go install -v ./srcs/go/cmd/kungfu-run
-# export PATH=$PATH:$(pwd)/bin
+export PYTHONPATH=$PYTHONPATH:/home/gcp_ghobadi_google_mit_edu/resnet-test-kungfu
+cd resnet-test-kungfu/src
 
 
 #iperf testing kungfu-run 

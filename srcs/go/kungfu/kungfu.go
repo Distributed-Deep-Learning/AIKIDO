@@ -264,7 +264,7 @@ func (kf *Kungfu) nextStrategy() []strategy {
 // ReshapeStrategy Creates a new KungFu Session with the given strategy
 func (kf *Kungfu) ReshapeStrategy(reshapeOn int) (bool, error) {
 
-	log.Debugf("calling reshape method here")
+	// log.Debugf("calling reshape method here")
 	var newStrategy []strategy
 	var changed bool
 
@@ -276,14 +276,14 @@ func (kf *Kungfu) ReshapeStrategy(reshapeOn int) (bool, error) {
 		changed = true
 		// delay on reshape off
 	} else if kf.DelayOn && reshapeOn == 0 {
-		log.Debugf("delay on reshape off")
+		// log.Debugf("delay on reshape off")
 
 		newStrategy = kf.CurrentSession().strategies
 		changed = kf.UpdateStrategy(newStrategy)
 
 		// delay on reshape on
 	} else {
-		log.Debugf("reshape on")
+		// log.Debugf("reshape on")
 
 		newStrategy = kf.nextStrategy()
 		changed = kf.UpdateStrategy(newStrategy)
