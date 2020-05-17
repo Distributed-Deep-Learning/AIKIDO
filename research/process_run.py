@@ -1,5 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+
+
+def truncate_data(lines):
+    lines = lines[100:]
+    truncated_values = []
+    for value in lines:
+        if value < 0.380:
+            truncated_values.append(value)
+    return truncated_values
 
 
 def parse_log(filepath, offset=15):
@@ -21,15 +31,27 @@ def parse_log(filepath, offset=15):
         return lines
 
 
-def truncate_data(lines): 
-    lines = lines[100:]
-    truncated_values = []
-    for value in lines: 
-        if value < 0.380: 
-            truncated_values.append(value)
-    return truncated_values
+def ecdf(logs, outfiles):
+    for i in range(len(logs)):
+        raw_data = np.array(logs[i])
+        # create a sorted series of unique data
+        cdfx = np.sort(logs[i])
+        # x-data for the ECDF: evenly spaced sequence of the uniques
+        x_values = np.linspace(start=min(cdfx),
+                            stop=max(cdfx), num=len(cdfx))
 
+        size_data = raw_data.size
+        y_values = []
+        for j in x_values:
+            temp = raw_data[raw_data <= j]
+            value = temp.size / size_data
+            y_values.append(value)
+
+        data = {'X': x_values, 'Y': y_values}
+        new_df = pd.DataFrame(data)
+        new_df.to_csv(outfiles[i], sep=" ", index=False)
     
+
 
 def plot_cdf(logs, titles):
     n_bins = 500
@@ -52,10 +74,10 @@ def plot_cdf(logs, titles):
 
 
 def main():
-    filepath1 = './logs/4-1-baseline-new.log'
-    filepath2 = './logs/4-1-delay-75ms.log'
-    filepath3 = './logs/4-1-skip-new.log'
-    filepath4 = './logs/4-1-active-new.log'
+    filepath1 = './logs/16-gpu-ideal.log'
+    filepath2 = './logs/16-gpu-straggler.log'
+    filepath3 = './logs/16-gpu-skip.log'
+    filepath4 = './logs/16-gpu-active.log'
 
     # filepath4 = './logs/ayushs-kf-8-gpu-baseline-imagenet-bs-128.log'
     # filepath5 = './logs/ayushs-kf-8-gpu-baseline-imagenet-bs-512.log'
@@ -76,9 +98,9 @@ def main():
 
     # print("number of entries: ", len(log1))
     logs = [log1, log2, log3, log4]
-    titles = ['Ideal', 'Straggler', 'Skip-Backup', 'Active-Backup']
-
-    plot_cdf(logs, titles)
+    outfiles = ['16-ideal-cdf.dat', '16-straggler-cdf.dat', '16-skip-cdf.dat', '16-active-cdf.dat']
+    ecdf(logs, outfiles)
+    # plot_cdf(logs, outfiles)
 
     # fig = plt.figure(figsize=(10,8))
     # axes= fig.add_axes([0.1,0.1,0.8,0.8])
