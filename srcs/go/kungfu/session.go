@@ -3,8 +3,6 @@ package kungfu
 import (
 	"errors"
 	"fmt"
-	"os"
-	"strconv"
 	"sync"
 	"time"
 
@@ -257,39 +255,23 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 	}
 
 	// delay the appropriate worker by delay.TimeDelay ms
-	// TODO: parse Delay from file and update it every iteration here
-
-	isDebug := false
-	if sess.rank == 0 && isDebug {
-		log.Debugf("info here")
-		log.Debugf(fmt.Sprintln("sess.iteration :", sess.iterationIdx))
-	}
+	// isDebug := false
+	// if sess.rank == 0 && isDebug {
+	// 	log.Debugf("info here")
+	// 	log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
 
 	for _, g := range graphs {
 		// reduce graph
 		if g.IsSelfLoop(sess.rank) {
-
-			// log reduce graph
-			f := "worker-log-" + strconv.Itoa(sess.rank)
-			file, err := os.OpenFile(f, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-
-			t0 := time.Now().UnixNano() / 1000000
-			dataChunk := w.Name
-			eventBegin := "Reduce Op | BEGIN"
-			utils.WriteToFile(file, eventBegin, dataChunk, t0)
-
 			prevs := g.Prevs(sess.rank)
 			if err := par(prevs, recvOnto); err != nil {
 				return err
 			}
 			// add delay here right before the sess.rank sends its reduced data to next nodes
 			if sess.delayOn && isAllReduce {
-				delay, ok := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
-				if sess.rank == delay.NodeID && ok {
+				delay, iterStraggler := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
+				if sess.rank == delay.NodeID && iterStraggler {
+					// log.Debugf(fmt.Sprintln(delay.TimeDelay))
 					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
 				}
 			}
@@ -297,26 +279,8 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 				return err
 			}
 
-			t1 := time.Now().UnixNano() / 1000000
-			eventEnd := "Reduce Op | END"
-			utils.WriteToFile(file, eventEnd, dataChunk, t1)
-
 			// broadcast graph
 		} else {
-
-			// log bcast graph
-			f := "worker-log-" + strconv.Itoa(sess.rank)
-			file, err := os.OpenFile(f, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-
-			t0 := time.Now().UnixNano() / 1000000
-			dataChunk := w.Name
-			eventBegin := "Broadcast Op | BEGIN"
-			utils.WriteToFile(file, eventBegin, dataChunk, t0)
-
 			prevs := g.Prevs(sess.rank)
 			if len(prevs) > 1 {
 				log.Errorf("more than once recvInto detected at node %d", sess.rank)
@@ -329,11 +293,6 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 			if err := par(g.Nexts(sess.rank), sendInto); err != nil {
 				return err
 			}
-
-			t1 := time.Now().UnixNano() / 1000000
-			eventEnd := "Broadcast Op | END"
-			utils.WriteToFile(file, eventEnd, dataChunk, t1)
-
 		}
 	}
 	return nil
@@ -352,21 +311,12 @@ func ceilDiv(a, b int) int {
 }
 
 func (sess *session) runStrategies(w Workspace, p partitionFunc, strategies []strategy, isAllReduce bool) error {
-	f := "worker-log-" + strconv.Itoa(sess.rank)
-
-	file, err := os.OpenFile(f, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	dataChunk := w.Name
-
-	if isAllReduce {
-		t0 := time.Now().UnixNano() / 1000000
-		eventType := "AllReduce Cycle | BEGIN"
-
-		utils.WriteToFile(file, eventType, dataChunk, t0)
-	}
+	// f := "worker-log-" + strconv.Itoa(sess.rank)
+	// if isAllReduce {
+	// 	t0 := time.Now().UnixNano() / 1000000
+	// 	eventBegin := "AllReduce begin"
+	// 	utils.WriteToFile(f, eventBegin, t0)
+	// }
 
 	k := ceilDiv(w.RecvBuf.Count*w.RecvBuf.Type.Size(), chunkSize)
 	errs := make([]error, k)
@@ -380,12 +330,12 @@ func (sess *session) runStrategies(w Workspace, p partitionFunc, strategies []st
 	}
 	wg.Wait()
 
-	if isAllReduce {
-		t1 := time.Now().UnixNano() / 1000000
-		eventType := "AllReduce Cycle | END"
-		utils.WriteToFile(file, eventType, dataChunk, t1)
+	// if isAllReduce {
+	// 	t1 := time.Now().UnixNano() / 1000000
+	// 	eventEnd := "AllReduce end"
+	// 	utils.WriteToFile(f, eventEnd, t1)
 
-	}
+	// }
 	return mergeErrors(errs, "runStrategies")
 
 }
